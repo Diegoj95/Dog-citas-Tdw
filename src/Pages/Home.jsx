@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Button, Typography, Card, CardContent, CardActions, Divider, Collapse,IconButton } from '@mui/material';
+import { Grid, Button, Typography, Card, CardContent, CardActions, Divider, Collapse, IconButton } from '@mui/material';
 import { obtenerFotoDePerro } from '../queries/perrosAPI';
 import { nombresPerros, descripcionesPerros } from './Components/datosPerros';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/material/styles';
-
-
 
 const cardStyle = {
   maxWidth: 345,
@@ -20,13 +18,21 @@ function Home() {
   const [aceptados, setAceptados] = useState([]);
   const [rechazados, setRechazados] = useState([]);
   const [expanded, setExpanded] = React.useState(false);
+  const [botonesDeshabilitados, setBotonesDeshabilitados] = useState(false);
+
+  useEffect(() => {
+    obtenerNuevaFoto();
+  }, []);
 
   const obtenerNuevaFoto = async () => {
     try {
+      setBotonesDeshabilitados(true); // Deshabilita los botones nuevamente
       const foto = await obtenerFotoDePerro();
       setCandidato(foto);
     } catch (error) {
       // Manejar errores
+    } finally {
+      setBotonesDeshabilitados(false); // Habilita los botones nuevamente
     }
   };
 
@@ -48,6 +54,7 @@ function Home() {
   };
 
   const rechazarPerro = () => {
+
     // Crea un nuevo perro rechazado con datos aleatorios y la foto actual del candidato
     const nombreAleatorio = nombresPerros[Math.floor(Math.random() * nombresPerros.length)];
     const descripcionAleatoria = descripcionesPerros[Math.floor(Math.random() * descripcionesPerros.length)];
@@ -64,10 +71,6 @@ function Home() {
     obtenerNuevaFoto();
   };
 
-  useEffect(() => {
-    obtenerNuevaFoto();
-  }, []);
-
   const ExpandMore = styled((props) => {
     const { expand, ...other } = props;
     return <IconButton {...other} />;
@@ -82,7 +85,6 @@ function Home() {
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
-  
 
   const renderPerros = (perros, titulo) => (
     <Grid item xs={12} sm={4}>
@@ -130,26 +132,26 @@ function Home() {
           <CardContent>
             <Typography variant="h6">{nombresPerros[Math.floor(Math.random() * nombresPerros.length)]}</Typography>
             <CardActions disableSpacing>
-                <ExpandMore
-                  expand={expanded}
-                  onClick={handleExpandClick}
-                  aria-expanded={expanded}
-                  aria-label="show more"
-                >
-                  <ExpandMoreIcon />
-                </ExpandMore>
-              </CardActions>
-              <Collapse in={expanded} timeout="auto" unmountOnExit>
-                <CardContent>
+              <ExpandMore
+                expand={expanded}
+                onClick={handleExpandClick}
+                aria-expanded={expanded}
+                aria-label="show more"
+              >
+                <ExpandMoreIcon />
+              </ExpandMore>
+            </CardActions>
+            <Collapse in={expanded} timeout="auto" unmountOnExit>
+              <CardContent>
                 <Typography variant="body2">{descripcionesPerros[Math.floor(Math.random() * descripcionesPerros.length)]}</Typography>
-                </CardContent>
-              </Collapse>
+              </CardContent>
+            </Collapse>
           </CardContent>
           <CardActions>
-            <Button variant="contained" color="primary" onClick={aceptarPerro}>
+            <Button variant="contained" color="primary" onClick={aceptarPerro} disabled={botonesDeshabilitados}>
               Aceptar
             </Button>
-            <Button variant="contained" color="secondary" onClick={rechazarPerro}>
+            <Button variant="contained" color="secondary" onClick={rechazarPerro} disabled={botonesDeshabilitados}>
               Rechazar
             </Button>
           </CardActions>
