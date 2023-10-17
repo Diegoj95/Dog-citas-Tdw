@@ -52,7 +52,7 @@ function Home() {
     };
 
     // Actualiza la lista de perros aceptados
-    setAceptados([...aceptados, nuevoPerroAceptado]);
+    setAceptados([nuevoPerroAceptado, ...aceptados ]);
 
     // Obtiene una nueva foto para el candidato
     obtenerNuevaFoto();
@@ -70,7 +70,7 @@ function Home() {
     };
 
     // Actualiza la lista de perros rechazados
-    setRechazados([...rechazados, nuevoPerroRechazado]);
+    setRechazados([nuevoPerroRechazado, ...rechazados]);
 
     // Obtiene una nueva foto para el candidato
     obtenerNuevaFoto();
@@ -123,7 +123,12 @@ function Home() {
   
 
   const renderPerrosA = (perros, titulo) => (
-    <Grid item xs={12} sm={4}>
+    <Grid item xs={12} sm={4}
+    style={{
+      maxHeight: "600px",
+      overflowY: "auto",
+      padding: "10px",
+    }}>
       <Typography variant="h6">{titulo}</Typography>
       {perros.map((perro, index) => (
         perro.url && (
@@ -162,7 +167,12 @@ function Home() {
   );
 
   const renderPerrosR = (perros, titulo) => (
-    <Grid item xs={12} sm={4}>
+    <Grid item xs={12} sm={4}
+    style={{
+      maxHeight: "600px",
+      overflowY: "auto",
+      padding: "10px",
+    }}>
       <Typography variant="h6">{titulo}</Typography>
       {perros.map((perro, index) => (
         perro.url && (
