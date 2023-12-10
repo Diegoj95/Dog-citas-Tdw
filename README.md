@@ -3,5 +3,4 @@
 ## Autores
 * Diego Jiménez, ICINF
 * José Rodriguez, ICINF
-* Alfredo Sabando, ICINF
 
