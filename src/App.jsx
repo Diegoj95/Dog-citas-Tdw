@@ -12,6 +12,7 @@ import { useGetDog } from "./queries/queryPerroDetalle.jsx";
 
 function App() {
 
+
   const [isModalOpen, setModalOpen] = useState(false);
 
   const handleOpenModal = () => {
@@ -100,6 +101,7 @@ function App() {
             <Button variant="contained" onClick={handleOpenModal}>
               Registrar Perro
             </Button>
+
 
             <DogRegistrationForm open={isModalOpen} handleClose={handleCloseModal} />
 
