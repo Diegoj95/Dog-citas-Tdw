@@ -80,22 +80,13 @@ function App() {
         {/* Columna perfiles */}
         <Box className="columna profile">
 
-          {/* <Box >
-            <Box >
-              <img className="logo" src={logo} alt="zd"/>
-            </Box>
-            <Typography variant="h5" gutterBottom>
-              Encuentra tu perro
-            </Typography>
-            {loading ? spinner : content}
-          </Box> */}
-
           <Box>
             <Box style={{ marginLeft: '30px' }}>
               <img className="logo" src={logo} alt="zd" />
             </Box>
+
             <Typography variant="h5" gutterBottom>
-            Encuentra tu perro
+            Elige un candidato
             </Typography>
             {loading ? spinner : content}
           </Box>
