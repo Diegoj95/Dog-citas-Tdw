@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import { Box, Button, Grid, Paper, Typography, Avatar, ListItem, Container, CircularProgress } from '@mui/material';
 import ProfileMore from './components/perroCard.jsx';
+import DogRegistrationForm from './components/dogRegistrationForm';
 
 //Logo
 import logo from './img/logo.png'
@@ -10,6 +11,17 @@ import logo from './img/logo.png'
 import { useGetDog } from "./queries/queryPerroDetalle.jsx";
 
 function App() {
+
+  const [isModalOpen, setModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
   const [rejectedDogs, setRejectedDogs] = useState([]);
   const [acceptedDogs, setAcceptedDogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -84,6 +96,12 @@ function App() {
             <Box style={{ marginLeft: '30px' }}>
               <img className="logo" src={logo} alt="zd" />
             </Box>
+
+            <Button variant="contained" onClick={handleOpenModal}>
+              Registrar Perro
+            </Button>
+
+            <DogRegistrationForm open={isModalOpen} handleClose={handleCloseModal} />
 
             <Typography variant="h5" gutterBottom>
             Elige un candidato
