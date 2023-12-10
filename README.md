@@ -5,6 +5,6 @@
 * José Rodriguez, ICINF
 
 ## Instalar:
-npm install @emotion/react
-npm install @emotion/styled
+- npm install @emotion/react
+- npm install @emotion/styled
 
