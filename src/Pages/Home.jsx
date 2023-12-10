@@ -5,6 +5,8 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Perros from "./Components/Perros";
 import PerroDetalle from "./Components/PerroDetalle";
+import { useQuery } from "react-query";
+
 
 
 export default function Home() {
