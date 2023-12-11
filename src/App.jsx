@@ -4,18 +4,42 @@ import { Box, Button, Grid, Paper, Typography, Avatar, ListItem, Container, Circ
 import ProfileMore from './components/perroCard.jsx';
 import DogRegistrationForm from './components/dogRegistrationForm';
 import ProfileSelection from './components/profileSelection';
+import axios from 'axios';
+import { useGetRandomDog, useGetDogDetails } from "./queries/queryPerroDetalle";
 
 //Logo
 import logo from './img/logo.png'
-
-//Query Perro
-import { useGetDog } from "./queries/queryPerroDetalle.jsx";
 
 function App() {
 
   // Estado para almacenar el perro seleccionado
   const [selectedDog, setSelectedDog] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
+  const [dogDetails, setDogDetails] = useState(null);
+  const [rejectedDogs, setRejectedDogs] = useState([]);
+  const [acceptedDogs, setAcceptedDogs] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Usando el hook personalizado para obtener un perro aleatorio
+  const { data: randomDog, isLoading: isLoadingRandomDog, refetch: refetchRandomDog } = useGetRandomDog();
+
+  useEffect(() => {
+    console.log("Random Dog:", randomDog); // Agregar esta línea para depurar
+    if (randomDog?.id) {
+      axios.get(`http://localhost:8000/api/listarUnPerro`, { params: { id: randomDog.id } })
+        .then(response => {
+          setDogDetails(response.data.perros);
+          console.log("Dog Details set to:", response.data.perros);
+        })
+        .catch(error => {
+          console.error("Error al obtener detalles del perro", error);
+        });
+    }
+  }, [randomDog]);
+
+    if (isLoadingRandomDog) {
+    return <CircularProgress />;
+  }
 
   // Función para manejar la selección del perfil
   const handleSelectProfile = (dog) => {
@@ -31,16 +55,8 @@ function App() {
     setModalOpen(false);
   };
 
-  const [rejectedDogs, setRejectedDogs] = useState([]);
-  const [acceptedDogs, setAcceptedDogs] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  const {
-    data: moreDog,
-    //isFetching: loadings,
-    refetch: reload,
-    //isError: error,
-  } = useGetDog();
+
 
   const spinner = (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -48,28 +64,77 @@ function App() {
     </Box>
   );
 
-  const handleReject = () => {
-    setRejectedDogs([...rejectedDogs, moreDog]);
-    setLoading(true);
-    reload().finally(() => setLoading(false));
+  const fetchAcceptedDogs = async (perroInteresadoId) => {
+    const { data } = await axios.get('http://localhost:8000/api/listarPerrosAceptados', { params: { id: perroInteresadoId } });
+    return data.perrosAceptados;
+  };
+  
+  const fetchRejectedDogs = async (perroInteresadoId) => {
+    const { data } = await axios.get('http://localhost:8000/api/listarPerrosRechazados', { params: { id: perroInteresadoId } });
+    return data.perrosRechazados;
   };
 
-  const handleAccept = () => {
-    setAcceptedDogs([...acceptedDogs, moreDog]);
-    setLoading(true);
-    reload().finally(() => setLoading(false));
+  const handleReject = async () => {
+    try {
+      console.log("Enviando solicitud de rechazo con:", selectedDog.id, dogDetails.id, 'R');
+      
+      const response = await axios.post('http://localhost:8000/api/registrarInteraccion', {
+        perro_interesado_id: selectedDog.id.toString(),
+        perro_candidato_id: dogDetails.id.toString(),
+        preferencia: 'R'
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      console.log("Respuesta de rechazo:", response);
+  
+      // Actualizar la lista de perros rechazados
+      const newRejectedDogs = await fetchRejectedDogs(selectedDog.id);
+      setRejectedDogs(newRejectedDogs);
+      refetchRandomDog();
+    } catch (error) {
+      console.error("Error en handleReject:", error);
+    }
   };
+  
+  const handleAccept = async () => {
+    try {
+      console.log("Enviando solicitud de aceptación con:", selectedDog.id, dogDetails.id, 'A');
+  
+      const response = await axios.post('http://localhost:8000/api/registrarInteraccion', {
+        perro_interesado_id: selectedDog.id.toString(),
+        perro_candidato_id: dogDetails.id.toString(),
+        preferencia: 'A'
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      console.log("Respuesta de aceptación:", response);
+  
+      // Actualizar la lista de perros aceptados
+      const newAcceptedDogs = await fetchAcceptedDogs(selectedDog.id);
+      setAcceptedDogs(newAcceptedDogs);
+      refetchRandomDog();
+    } catch (error) {
+      console.error("Error en handleAccept:", error);
+    }
+  };
+  
 
-  const moveFromRejectedToAccepted = (moreDog) => {
-    const newRejectedDogs = rejectedDogs.filter((d) => d !== moreDog);
+  const moveFromRejectedToAccepted = (dogDetails) => {
+    const newRejectedDogs = rejectedDogs.filter((d) => d !== dogDetails);
     setRejectedDogs(newRejectedDogs);
-    setAcceptedDogs([moreDog, ...acceptedDogs]);
+    setAcceptedDogs([dogDetails, ...acceptedDogs]);
   };
 
-  const moveFromAcceptedToRejected = (moreDog) => {
-    const newAcceptedDogs = acceptedDogs.filter((d) => d !== moreDog);
+  const moveFromAcceptedToRejected = (dogDetails) => {
+    const newAcceptedDogs = acceptedDogs.filter((d) => d !== dogDetails);
     setAcceptedDogs(newAcceptedDogs);
-    setRejectedDogs([moreDog, ...rejectedDogs]);
+    setRejectedDogs([dogDetails, ...rejectedDogs]);
   };
 
   // Si no hay un perro seleccionado, mostrar la selección de perfil
@@ -77,25 +142,34 @@ function App() {
     return <ProfileSelection onSelectProfile={handleSelectProfile} />;
   }
 
-  //Contenido de cargar
-  const content = (
+  if (!randomDog) {
+    return <CircularProgress />;
+  }
+
+  if (!selectedDog || isLoadingRandomDog || !randomDog) {
+    return <CircularProgress />;
+  }
+
+  const content = dogDetails ? (
     <Box>
       <Box className="caja">
-        <img src={moreDog?.image} alt="dog" style={{ width: '200px', height: '200px' }} />
+        <img src={dogDetails.url_foto} alt="dog" style={{ width: '200px', height: '200px' }} />
       </Box>
       <Typography className='nameDog'>
-        Nombre: {moreDog?.name}
+        Nombre: {dogDetails.nombre}
       </Typography>
       <Typography className='lotum'>
-        Descripcion:{moreDog?.description}
-      </Typography>
+        Descripcion: {dogDetails.descripcion}
+    </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <button className='button-X' variant="contained" onClick={handleReject} sx={{ mr: 2 }} />
         <button className='button-Match' variant="contained" onClick={handleAccept} />
       </Box>
     </Box>
+  ) : (
+    <Typography variant="h6" sx={{ mt: 2, textAlign: 'center' }}>No hay más candidatos disponibles</Typography>
   );
-  //console.log(moreDog)
+
 
   return (
     <Container className="background">
@@ -118,23 +192,22 @@ function App() {
           <Button variant="contained" onClick={handleOpenModal}>
             Registrar Perro
           </Button>
+
+
+          {isModalOpen && (
+            <DogRegistrationForm
+              open={isModalOpen}
+              handleClose={handleCloseModal}
+            />
+          )}
         </Box>
       </Box>
-      {/* Contenedor */}
+
       <Box className="contenido">
-
-        {/* Columna perfiles */}
-        <Box className="columna profile">
-
-          <Box>
-
-
-            <Typography variant="h5" gutterBottom>
-            Elige un candidato
-            </Typography>
-            {loading ? spinner : content}
-          </Box>
-        </Box>
+      {/* Columna perfiles */}
+      <Box className="columna profile">
+        {content}
+      </Box>
 
         {/* Columna Aceptados */}
         <Box className="columna aceptados">
@@ -143,19 +216,19 @@ function App() {
           </Box>
           <ListItem className='lista'>
             <Box className='contenidos-aceptados'>
-              {acceptedDogs.map((moreDog) => (
-                <Box className="aD" key={moreDog?.image} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+              {acceptedDogs.map((dogDetails) => (
+                <Box className="aD" key={dogDetails?.url_foto} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
                   <Avatar
-                    src={moreDog?.image}
+                    src={dogDetails?.url_foto}
                     sx={{ width: 130, height: 130 }}
                     alt="Imagen Avatar"
                     style={{ marginRight: "10px" }}
                   />
                   <Typography variant="subtitle1" sx={{ mt: 1 }}>
-                    {moreDog?.name}
+                    {dogDetails?.nombre}
                   </Typography>
-                  <button className='button_AtoR' onClick={() => moveFromAcceptedToRejected(moreDog)}></button>
-                  <ProfileMore data={moreDog}></ProfileMore>
+                  <button className='button_AtoR' onClick={() => moveFromAcceptedToRejected(dogDetails)}></button>
+                  <ProfileMore data={dogDetails}></ProfileMore>
                 </Box>
               ))}
             </Box>
@@ -170,19 +243,19 @@ function App() {
           <ListItem className='lista'>
 
             <Box className='contenidos-rechazados'>
-              {rejectedDogs.map((moreDog) => (
-                <Box className="rD" key={moreDog?.image} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+              {rejectedDogs.map((dogDetails) => (
+                <Box className="rD" key={dogDetails?.url_foto} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
                   <Avatar
-                    src={moreDog?.image}
+                    src={dogDetails?.url_foto}
                     sx={{ width: 130, height: 130 }}
                     alt="Imagen Avatar"
                     style={{ marginRight: "10px" }}
                   />
                   <Typography variant="subtitle1" sx={{ mt: 1 }}>
-                    {moreDog?.name}
+                    {dogDetails?.nombre}
                   </Typography>
-                  <button className='button_RtoA' onClick={() => moveFromRejectedToAccepted(moreDog)}></button>
-                  <ProfileMore data={moreDog}></ProfileMore>
+                  <button className='button_RtoA' onClick={() => moveFromRejectedToAccepted(dogDetails)}></button>
+                  <ProfileMore data={dogDetails}></ProfileMore>
                 </Box>
               ))}
             </Box>

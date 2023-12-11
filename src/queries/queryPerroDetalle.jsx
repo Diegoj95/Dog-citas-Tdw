@@ -1,34 +1,22 @@
 import { useQuery } from "react-query";
 import axios from "axios";
-import { LoremIpsum } from "react-lorem-ipsum";
-import { get } from "react-hook-form";
 
-export function useGetDog() {
-    return useQuery(["getDog"], getDog, {
-        retry: 0,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-        keepPreviousData: false,
-        enabled: true,
+// Esta función obtiene un perro aleatorio (solo ID y nombre)
+export function useGetRandomDog() {
+    return useQuery(["getRandomDog"], async () => {
+        const { data } = await axios.get("http://localhost:8000/api/perroRandom");
+        return data.perro; 
+    }, {
+        refetchOnWindowFocus: false
     });
 }
 
-export const getDogBreeds = async () => {
-    const { data } = await axios.get("https://dog.ceo/api/breeds/list/all");
-    return Object.keys(data.message);
-};
-
-export const getDog = async () => {
-    const { data } = await axios.get("https://dog.ceo/api/breeds/image/random");
-    const dogBreeds = await getDogBreeds();
-    return {
-        name: dogBreeds[Math.floor(Math.random() * dogBreeds.length)].substring(0, 6),
-        image: data.message,
-        description: (<LoremIpsum
-            p={2}
-            startWithLoremIpsum={false}
-            avgWordsPerSentence={2}
-            avgSentencesPerParagraph={1}
-        />)
-    };
-};
+// Esta función obtiene los detalles completos del perro basado en su ID
+export function useGetDogDetails(id) {
+    return useQuery(["getDogDetails", id], async () => {
+        const response = await axios.get('http://localhost:8000/api/listarUnPerro', { id });
+        return response.data.perros;
+    }, {
+        enabled: !!id
+    });
+}
