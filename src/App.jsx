@@ -24,6 +24,7 @@ function App() {
   const { data: randomDog, isLoading: isLoadingRandomDog, refetch: refetchRandomDog } = useGetRandomDog();
 
   useEffect(() => {
+    console.log("Perros aceptados:", acceptedDogs);
     console.log("Random Dog:", randomDog); // Agregar esta línea para depurar
     if (randomDog?.id) {
       axios.get(`http://localhost:8000/api/listarUnPerro`, { params: { id: randomDog.id } })
@@ -65,14 +66,57 @@ function App() {
   );
 
   const fetchAcceptedDogs = async (perroInteresadoId) => {
-    const { data } = await axios.get('http://localhost:8000/api/listarPerrosAceptados', { params: { id: perroInteresadoId } });
-    return data.perrosAceptados;
+    try {
+      const response = await axios.get('http://localhost:8000/api/listarPerrosAceptados', { params: { id: perroInteresadoId } });
+      console.log("Respuesta listarPerrosAceptados:", response.data);
+  
+      let ids = [];
+      if (response.data.perrosAceptados && response.data.perrosAceptados.length > 0) {
+        ids = response.data.perrosAceptados.map(perro => perro.perro_candidato_id);
+      }  
+      const detalles = await obtenerDetallesPerros(ids);
+      return detalles;
+    } catch (error) {
+      console.error("Error al obtener perros aceptados:", error);
+      return [];
+    }
   };
   
   const fetchRejectedDogs = async (perroInteresadoId) => {
-    const { data } = await axios.get('http://localhost:8000/api/listarPerrosRechazados', { params: { id: perroInteresadoId } });
-    return data.perrosRechazados;
+    try {
+      const response = await axios.get('http://localhost:8000/api/listarPerrosRechazados', { params: { id: perroInteresadoId } });
+      console.log("Respuesta listarPerrosRechazados:", response.data);
+  
+      let ids = [];
+      if (response.data.perrosRechazados && response.data.perrosRechazados.length > 0) {
+        ids = response.data.perrosRechazados.map(perro => perro.perro_candidato_id);
+      }
+        
+      const detalles = await obtenerDetallesPerros(ids);
+      return detalles;
+    } catch (error) {
+      console.error("Error al obtener perros rechazados:", error);
+      return [];
+    }
   };
+  
+
+  const obtenerDetallesPerros = async (ids) => {
+
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const promesas = ids.map(id => 
+      axios.get(`http://localhost:8000/api/listarUnPerro`, { params: { id } })
+        .then(response => response.data.perros)
+        .catch(error => console.error("Error al obtener detalles del perro", error))
+    );
+  
+    const detallesPerros = await Promise.all(promesas);
+    return detallesPerros;
+  };
+  
 
   const handleReject = async () => {
     try {
@@ -124,18 +168,6 @@ function App() {
     }
   };
   
-
-  const moveFromRejectedToAccepted = (dogDetails) => {
-    const newRejectedDogs = rejectedDogs.filter((d) => d !== dogDetails);
-    setRejectedDogs(newRejectedDogs);
-    setAcceptedDogs([dogDetails, ...acceptedDogs]);
-  };
-
-  const moveFromAcceptedToRejected = (dogDetails) => {
-    const newAcceptedDogs = acceptedDogs.filter((d) => d !== dogDetails);
-    setAcceptedDogs(newAcceptedDogs);
-    setRejectedDogs([dogDetails, ...rejectedDogs]);
-  };
 
   // Si no hay un perro seleccionado, mostrar la selección de perfil
   if (!selectedDog) {
@@ -227,7 +259,6 @@ function App() {
                   <Typography variant="subtitle1" sx={{ mt: 1 }}>
                     {dogDetails?.nombre}
                   </Typography>
-                  <button className='button_AtoR' onClick={() => moveFromAcceptedToRejected(dogDetails)}></button>
                   <ProfileMore data={dogDetails}></ProfileMore>
                 </Box>
               ))}
@@ -254,7 +285,6 @@ function App() {
                   <Typography variant="subtitle1" sx={{ mt: 1 }}>
                     {dogDetails?.nombre}
                   </Typography>
-                  <button className='button_RtoA' onClick={() => moveFromRejectedToAccepted(dogDetails)}></button>
                   <ProfileMore data={dogDetails}></ProfileMore>
                 </Box>
               ))}

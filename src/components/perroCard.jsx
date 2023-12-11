@@ -16,19 +16,19 @@ export default function profileMore({ data }) {
     const [open, setOpen] = React.useState(false);
     const handleClickOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const { name,image,description} = data;
+    const { nombre,url_foto,descripcion} = data;
 
     return (
         <div>
             <Button className="button_more" onClick={handleClickOpen}></Button>
             <Modal open={open} onClose={handleClose}>
                 <Box className="Information" sx={info_box}>
-                    <img style={styleImge} src={image}/>
+                    <img style={styleImge} src={url_foto}/>
                     <Box className='profileName'>
-                        Nombre: {name}
+                        Nombre: {nombre}
                     </Box>
                     <Box className='profileDescp'>
-                        Descripcion:{description}
+                        Descripcion:{descripcion}
                     </Box>
                 </Box>
             </Modal>
