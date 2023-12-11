@@ -6,6 +6,7 @@ import DogRegistrationForm from './components/dogRegistrationForm';
 import ProfileSelection from './components/profileSelection';
 import axios from 'axios';
 import { useGetRandomDog, useGetDogDetails } from "./queries/queryPerroDetalle";
+import Swal from 'sweetalert2';
 
 //Logo
 import logo from './img/logo.png'
@@ -155,6 +156,13 @@ function App() {
         headers: {
           'Content-Type': 'application/json'
         }
+      });
+
+      Swal.fire({
+        title: '¡Hay Match!',
+        text: '1313',
+        icon: 'success',
+        confirmButtonText: 'Genial'
       });
   
       console.log("Respuesta de aceptación:", response);
