@@ -3,6 +3,7 @@ import './App.css';
 import { Box, Button, Grid, Paper, Typography, Avatar, ListItem, Container, CircularProgress } from '@mui/material';
 import ProfileMore from './components/perroCard.jsx';
 import DogRegistrationForm from './components/dogRegistrationForm';
+import ProfileSelection from './components/profileSelection';
 
 //Logo
 import logo from './img/logo.png'
@@ -12,8 +13,15 @@ import { useGetDog } from "./queries/queryPerroDetalle.jsx";
 
 function App() {
 
-
+  // Estado para almacenar el perro seleccionado
+  const [selectedDog, setSelectedDog] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
+
+  // Función para manejar la selección del perfil
+  const handleSelectProfile = (dog) => {
+    setSelectedDog(dog);
+  };
+
 
   const handleOpenModal = () => {
     setModalOpen(true);
@@ -64,6 +72,11 @@ function App() {
     setRejectedDogs([moreDog, ...rejectedDogs]);
   };
 
+  // Si no hay un perro seleccionado, mostrar la selección de perfil
+  if (!selectedDog) {
+    return <ProfileSelection onSelectProfile={handleSelectProfile} />;
+  }
+
   //Contenido de cargar
   const content = (
     <Box>
@@ -86,7 +99,27 @@ function App() {
 
   return (
     <Container className="background">
+      {/* Contenedor principal para alinear el logo, mensaje de bienvenida y botón */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0' }}>
+        {/* Contenedor para el logo */}
+        <Box sx={{ flex: '0 0 auto' }}>
+          <img className="logo" src={logo} alt="Logo" />
+        </Box>
 
+        {/* Mensaje de bienvenida */}
+        <Box sx={{ flex: '1 1 auto', textAlign: 'center' }}>
+          <Typography variant="h4" sx={{ color: 'black' }}>
+            Bienvenido {selectedDog.nombre}!
+          </Typography>
+        </Box>
+
+        {/* Botón de registro */}
+        <Box sx={{ flex: '0 0 auto' }}>
+          <Button variant="contained" onClick={handleOpenModal}>
+            Registrar Perro
+          </Button>
+        </Box>
+      </Box>
       {/* Contenedor */}
       <Box className="contenido">
 
@@ -94,16 +127,7 @@ function App() {
         <Box className="columna profile">
 
           <Box>
-            <Box style={{ marginLeft: '30px' }}>
-              <img className="logo" src={logo} alt="zd" />
-            </Box>
 
-            <Button variant="contained" onClick={handleOpenModal}>
-              Registrar Perro
-            </Button>
-
-
-            <DogRegistrationForm open={isModalOpen} handleClose={handleCloseModal} />
 
             <Typography variant="h5" gutterBottom>
             Elige un candidato
