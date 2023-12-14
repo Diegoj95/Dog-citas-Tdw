@@ -5,7 +5,7 @@ import axios from 'axios';
 import { TextField, Button, Box, Modal, IconButton } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
-const DogRegistrationForm = ({ open, handleClose }) => {
+const DogRegistrationForm = ({ open, handleClose, onRegisterSuccess }) => {
     const [dogData, setDogData] = React.useState({
       nombre: '',
       descripcion: '',
@@ -38,6 +38,11 @@ const DogRegistrationForm = ({ open, handleClose }) => {
     try {
         const response = await axios.post('http://localhost:8000/api/registrarPerro', dogData);
         console.log(response.data);
+
+        if (response.data && onRegisterSuccess) {
+          onRegisterSuccess();
+        }
+        
         } catch (error) {
         console.error('Error al registrar el perro:', error);
         }
