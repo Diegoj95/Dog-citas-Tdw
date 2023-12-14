@@ -177,13 +177,16 @@ function App() {
           'Content-Type': 'application/json'
         }
       });
-
-      Swal.fire({
-        title: '¡Hay Match!',
-        text: '1313',
-        icon: 'success',
-        confirmButtonText: 'Genial'
-      });
+  
+      // Revisa si la respuesta incluye el mensaje "hay match"
+      if (response.data.mensaje === "hay match") {
+        Swal.fire({
+          title: '¡Hay Match!',
+          text: '1313',
+          icon: 'success',
+          confirmButtonText: 'Genial'
+        });
+      }
   
       console.log("Respuesta de aceptación:", response);
   
@@ -201,8 +204,8 @@ function App() {
     } catch (error) {
       console.error("Error en handleAccept:", error);
     }
-
   };
+  
   
 
   // Si no hay un perro seleccionado, mostrar la selección de perfil
